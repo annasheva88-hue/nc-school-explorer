@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -268,10 +269,23 @@
   .floating-agent-banner .cta:hover { background:#1d4ed8; }
   .floating-agent-banner .cta.secondary { background:#fff; color:#2563eb; border:1.5px solid #2563eb; }
   .floating-agent-banner .cta.secondary:hover { background:#eff6ff; }
-  @media (max-width: 700px) {
-    .floating-agent-banner { max-width:calc(100vw - 30px); font-size:11px; padding:8px; }
-    .floating-agent-banner .photo { width:38px; height:38px; font-size:14px; }
+  /* Mobile breakpoint: hide floating agent banner — overlaps popup on small screens */
+  @media (max-width: 900px) {
+    .floating-agent-banner { display:none !important; }
+    .floating-list-btn { padding:9px 14px; font-size:12px; }
+    .floating-list-btn .badge { padding:1px 7px; font-size:11px; }
+    .map-badge { width:32px !important; height:32px !important; font-size:14px !important; }
   }
+  /* Sidebar agent banner — only shown on mobile/tablet */
+  #sidebar-agent-banner { display:none; }
+  @media (max-width: 900px) {
+    #sidebar-agent-banner { display:block; }
+    .popup.gs-style { max-width:90vw !important; min-width:0 !important; }
+    .leaflet-popup-content { max-width:90vw !important; margin:10px !important; }
+  }
+  /* Belt-and-suspenders: also hide via body.is-mobile class for cache resilience */
+  body.is-mobile .floating-agent-banner { display:none !important; }
+  body.is-mobile #sidebar-agent-banner { display:block !important; }
 
   /* Compact version for popup — extra spacing/border for separation */
   .agent-mini { display:flex; gap:10px; align-items:center; padding:12px 14px;
@@ -349,9 +363,36 @@
                               font-size:11px; flex:none; }
   .nearest-row .dist-mini { font-size:10px; color:var(--muted); flex:none; }
   @media (max-width: 700px) {
-    #app { grid-template-columns: 1fr; grid-template-rows: 48vh 52vh; }
+    /* Mobile layout: sidebar on top (45vh), map on bottom (55vh) — both scrollable */
+    #app { grid-template-columns: 1fr; grid-template-rows: 45vh 55vh; }
     #map { height: auto; }
-    #sidebar { border-right:none; border-top:1px solid var(--border); }
+    #sidebar { border-right:none; border-bottom:2px solid var(--border); padding:14px; }
+    /* Bigger tap targets — iOS minimum 44px, ours 36-40px which is good compromise */
+    .chip { font-size:13px; padding:8px 14px; min-height:36px; }
+    .chip.active { box-shadow:0 0 0 2px rgba(31,41,55,0.15); }
+    /* Larger Add to My List checkbox in popup top-right */
+    .add-to-list { width:auto !important; padding:6px !important; }
+    .add-to-list .check { width:30px !important; height:30px !important; font-size:18px !important; }
+    .add-to-list .lbl { font-size:9px !important; }
+    /* Sidebar h1 a bit smaller, intro shorter */
+    .intro-text { font-size:11.5px; line-height:1.4; }
+    .data-source { font-size:10px; padding:5px 8px; }
+    /* Section labels slightly smaller */
+    .filter-group label { font-size:12px; margin-bottom:8px; }
+    .filter-group { margin-bottom:14px; }
+    /* Filter groups slightly more compact */
+    .chips { gap:6px; }
+    /* Modal padding adjusted for mobile */
+    .modal-overlay { padding:12px 8px; }
+    .modal-box { padding:16px 14px; max-height:calc(100vh - 24px); }
+    .modal-box h2 { font-size:16px; }
+    /* Remove button (×) in comparison table — bigger tap area */
+    .compare-table .row-remove { font-size:22px; padding:6px 10px; }
+    /* Email form input bigger */
+    .email-form-row input[type="email"] { font-size:16px; padding:12px 14px; }
+    /* Floating list button — bottom-right on mobile, not top (so it doesn't overlap map zoom buttons) */
+    .floating-list-btn { top:auto; bottom:14px; right:14px; padding:10px 16px;
+                          font-size:13px; border-radius:24px; }
   }
 </style>
 </head>
@@ -364,6 +405,9 @@
       <span class="ds-label">Data sources:</span>
       NC DPI School Performance Grade 2023-24 · NCES EDGE 2023-24 · NCES CCD 2024-25
     </div>
+
+    <!-- Mobile-only sidebar agent banner (desktop uses floating one) -->
+    <div id="sidebar-agent-banner"></div>
 
     <!-- ALWAYS-VISIBLE ASSIGNMENT BUTTON -->
     <button class="assign-btn" id="assign-toggle">
@@ -712,6 +756,23 @@ function getLocators(county) {
 // --- Helpers ---
 // Green gradient palette — lightest for low ratings, darkest for high.
 // Single hue (green) avoids red/yellow alarm semantics; lightness conveys ranking.
+// Mobile detection — set body.is-mobile based on viewport.
+// Also force-hide floating banner inline (cache-resilient).
+function isMobile() { return window.innerWidth <= 900; }
+(function detectMobile() {
+  const apply = () => {
+    const mob = isMobile();
+    document.body.classList.toggle('is-mobile', mob);
+    const fb = document.getElementById('floating-agent-banner');
+    if (fb) fb.style.display = mob ? 'none' : '';
+    const sb = document.getElementById('sidebar-agent-banner');
+    if (sb) sb.style.display = mob ? 'block' : 'none';
+  };
+  apply();
+  window.addEventListener('resize', apply);
+  document.addEventListener('DOMContentLoaded', apply);
+})();
+
 const RATING_GREENS = {
   1:  '#e5f5e0',  // very light
   2:  '#c7e9c0',
@@ -774,9 +835,42 @@ SCHOOLS.forEach(s => {
     icon, _rating: s.rating, _id: s.id,
     zIndexOffset: zOff, riseOnHover: true,
   });
-  m.bindPopup(() => renderPopup(s), { maxWidth: 340 });
+  // Desktop: standard Leaflet popup (no auto-pan — keeps map position so user
+  // can click multiple schools in same area without losing their place).
+  // Mobile: fullscreen modal (overlay)
+  m.bindPopup(() => renderPopup(s), {
+    maxWidth: 340,
+    autoPan: false
+  });
+  m.on('click', function(e) {
+    if (isMobile()) {
+      L.DomEvent.stopPropagation(e);
+      this.closePopup();
+      openMobileSchoolModal(s);
+    }
+  });
   markerById[s.id] = m;
 });
+
+// Mobile-only school modal — full-screen, scrollable, doesn't overlap with map
+function openMobileSchoolModal(s) {
+  let modal = document.getElementById('mobile-school-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'mobile-school-modal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-box" style="position:relative;padding:14px;max-width:100%;max-height:calc(100vh - 20px)">
+        <button class="modal-close" id="mobile-school-modal-close" aria-label="Close" style="z-index:10">×</button>
+        <div id="mobile-school-modal-body"></div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target.id === 'mobile-school-modal') modal.classList.remove('open'); });
+    document.getElementById('mobile-school-modal-close').onclick = () => modal.classList.remove('open');
+  }
+  document.getElementById('mobile-school-modal-body').innerHTML = renderPopup(s);
+  modal.classList.add('open');
+}
 
 function rankRow(label, score, percentile) {
   if (score == null) return `<div class="rk-row"><div>${label}</div><div class="rk-na">no data</div><div></div></div>`;
@@ -1269,11 +1363,10 @@ function agentPhotoHtml(cls) {
   const style = AGENT.photo ? `background-image:url('${AGENT.photo}')` : '';
   return `<div class="photo ${cls||''}" style="${style}">${inner}</div>`;
 }
-// Render floating agent banner at bottom-right of map (always visible)
-(function renderFloatingAgentBanner() {
-  const slot = document.getElementById('floating-agent-banner');
-  if (!slot) return;
-  slot.innerHTML = `
+// Render floating agent banner at bottom-right of map (desktop)
+// + Mobile-only sidebar agent banner (CSS hides one or the other based on viewport)
+(function renderAgentBanners() {
+  const bannerHTML = `
     ${agentPhotoHtml()}
     <div class="body">
       <div class="title">🏠 Looking for homes nearby?</div>
@@ -1282,6 +1375,22 @@ function agentPhotoHtml(cls) {
         <a class="cta" href="${agentCallUrl()}" target="_blank" rel="noopener">Contact Anna →</a>
       </div>
     </div>`;
+  const floating = document.getElementById('floating-agent-banner');
+  if (floating) floating.innerHTML = bannerHTML;
+  const sidebar = document.getElementById('sidebar-agent-banner');
+  if (sidebar) {
+    // Inside sidebar, reuse .agent-banner styles (with photo + content blocks)
+    sidebar.innerHTML = `
+      <div class="agent-banner">
+        ${agentPhotoHtml()}
+        <div class="content">
+          <div class="title">🏠 Looking for homes nearby?</div>
+          <div><span class="name">${AGENT.name}</span>, ${AGENT.title}</div>
+          <div class="desc">Local guidance on neighborhoods, schools and home buying in the Triangle Area.</div>
+          <a class="link" href="${agentCallUrl()}" target="_blank" rel="noopener">Contact Anna →</a>
+        </div>
+      </div>`;
+  }
 })();
 // Optional: Formspree (or similar) endpoint for real lead capture.
 // If null, the form falls back to opening user's mail client via mailto:.
