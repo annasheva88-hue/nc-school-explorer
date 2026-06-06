@@ -290,7 +290,7 @@
   }
   /* Belt-and-suspenders: also hide via body.is-mobile class for cache resilience */
   body.is-mobile .floating-agent-banner { display:none !important; }
-  body.is-mobile #sidebar-agent-banner { display:block !important; }
+  body.is-mobile #sidebar-agent-banner { display:none !important; }
   /* Constrain popup height so it always fits in viewport — scrollable internally.
      Combined with autoPan:true with small padding, this gives a stable UX. */
   .leaflet-popup-content { max-height:75vh; overflow-y:auto; overscroll-behavior:contain; }
@@ -372,43 +372,168 @@
                               align-items:center; justify-content:center; font-weight:700;
                               font-size:11px; flex:none; }
   .nearest-row .dist-mini { font-size:10px; color:var(--muted); flex:none; }
-  @media (max-width: 700px) {
-    /* Mobile layout: sidebar on top (45vh), map on bottom (55vh) — both scrollable */
-    #app { grid-template-columns: 1fr; grid-template-rows: 45vh 55vh; }
-    #map { height: auto; }
-    #sidebar { border-right:none; border-bottom:2px solid var(--border); padding:14px; }
-    /* Bigger tap targets — iOS minimum 44px, ours 36-40px which is good compromise */
+  /* =========================
+     MOBILE HEADER + DRAWER (always defined, shown via @media)
+     ========================= */
+  .mobile-header { display:none; }
+  .drawer-overlay { display:none; }
+  .drawer-header { display:none; }
+  .drawer-apply-bar { display:none; }
+
+  @media (max-width: 900px) {
+    /* ----- MAP-FIRST LAYOUT ----- */
+    body { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+    #app { grid-template-columns: 1fr; grid-template-rows: 1fr; flex:1; min-height:0; height:auto; }
+    #map { height:100% !important; }
+
+    /* ----- MOBILE STICKY HEADER ----- */
+    .mobile-header {
+      display:flex; align-items:center; gap:10px; flex:none;
+      height:50px; background:#fff;
+      border-bottom:1px solid var(--border);
+      padding:0 12px; z-index:1200;
+      box-shadow:0 1px 3px rgba(0,0,0,0.05);
+    }
+    .mobile-header .mh-logo {
+      font-size:15px; font-weight:800; color:#1f2937; flex:1;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .mobile-header .mh-logo .emo { margin-right:6px; }
+    .mobile-header .mh-icon-btn {
+      width:40px; height:40px; border:1px solid var(--border); border-radius:50%;
+      background:#fff; cursor:pointer; font-size:18px; padding:0;
+      display:flex; align-items:center; justify-content:center; color:#1f2937;
+      position:relative;
+    }
+    .mobile-header .mh-icon-btn:active { background:#f3f4f6; }
+    .mobile-header .mh-icon-btn .mh-badge {
+      position:absolute; top:-4px; right:-4px; background:#dc2626; color:#fff;
+      min-width:18px; height:18px; border-radius:99px; padding:0 5px;
+      font-size:10px; font-weight:800; display:flex; align-items:center;
+      justify-content:center; border:2px solid #fff;
+    }
+
+    /* ----- HIDE DESKTOP-ONLY SIDEBAR ELEMENTS ----- */
+    #sidebar h1,
+    #sidebar .intro-text,
+    #sidebar .data-source,
+    #sidebar-agent-banner { display:none !important; }
+
+    /* ----- SIDEBAR -> BOTTOM-SHEET DRAWER ----- */
+    #sidebar {
+      position:fixed; left:0; right:0; bottom:0; top:auto;
+      width:100%; max-height:85vh; height:85vh;
+      border-right:none; border-top:1px solid var(--border);
+      border-radius:18px 18px 0 0;
+      box-shadow:0 -10px 30px rgba(0,0,0,0.25);
+      padding:0; overflow-y:auto;
+      z-index:1500;
+      transform:translateY(100%);
+      transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    }
+    body.drawer-open #sidebar { transform:translateY(0); }
+    /* Add spacing around drawer content (we removed sidebar padding for sticky bars) */
+    #sidebar > *:not(.drawer-header):not(.drawer-apply-bar) { padding-left:14px; padding-right:14px; }
+    #sidebar > .assign-btn:first-of-type { margin-top:14px; }
+
+    .drawer-header {
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; left:0; right:0; height:54px;
+      padding:8px 14px 0; background:#fff;
+      border-bottom:1px solid var(--border);
+      border-radius:18px 18px 0 0;
+      z-index:5;
+    }
+    .drawer-header::before {
+      content:""; position:absolute; top:6px; left:50%; transform:translateX(-50%);
+      width:38px; height:4px; border-radius:2px; background:#d1d5db;
+    }
+    .drawer-header .dh-title { font-weight:800; font-size:16px; color:#1f2937; }
+    .drawer-header .dh-actions { display:flex; gap:8px; align-items:center; }
+    .drawer-header .dh-clear {
+      font-size:13px; color:#dc2626; background:none; border:none;
+      cursor:pointer; padding:6px 10px; font-weight:600;
+    }
+    .drawer-header .dh-close {
+      width:34px; height:34px; border:none; background:#f3f4f6; border-radius:50%;
+      font-size:20px; cursor:pointer; color:#374151; display:flex;
+      align-items:center; justify-content:center; padding:0;
+    }
+
+    .drawer-apply-bar {
+      display:block; position:sticky; left:0; right:0; bottom:0;
+      padding:12px 14px; background:#fff; border-top:1px solid var(--border);
+      z-index:5; margin-top:auto;
+    }
+    .drawer-apply-bar button {
+      width:100%; padding:14px; background:#2563eb; color:#fff;
+      border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer;
+    }
+    .drawer-apply-bar button:active { background:#1d4ed8; }
+
+    .drawer-overlay {
+      display:block; position:fixed; inset:0; background:rgba(0,0,0,0.4);
+      z-index:1400; opacity:0; pointer-events:none;
+      transition:opacity 0.2s;
+    }
+    body.drawer-open .drawer-overlay { opacity:1; pointer-events:auto; }
+
+    /* ----- COMPACT FILTERS INSIDE DRAWER ----- */
     .chip { font-size:13px; padding:8px 14px; min-height:36px; }
     .chip.active { box-shadow:0 0 0 2px rgba(31,41,55,0.15); }
-    /* Larger Add to My List checkbox in popup top-right */
+    .filter-group label { font-size:13px; margin-bottom:8px; }
+    .filter-group { margin-bottom:16px; }
+    .chips { gap:6px; }
+
+    /* ----- ADD TO LIST CHECKBOX (in popup) ----- */
     .add-to-list { width:auto !important; padding:6px !important; }
     .add-to-list .check { width:30px !important; height:30px !important; font-size:18px !important; }
     .add-to-list .lbl { font-size:9px !important; }
-    /* Sidebar h1 a bit smaller, intro shorter */
-    .intro-text { font-size:11.5px; line-height:1.4; }
-    .data-source { font-size:10px; padding:5px 8px; }
-    /* Section labels slightly smaller */
-    .filter-group label { font-size:12px; margin-bottom:8px; }
-    .filter-group { margin-bottom:14px; }
-    /* Filter groups slightly more compact */
-    .chips { gap:6px; }
-    /* Modal padding adjusted for mobile */
+
+    /* ----- MODALS ----- */
     .modal-overlay { padding:12px 8px; }
     .modal-box { padding:16px 14px; max-height:calc(100vh - 24px); }
     .modal-box h2 { font-size:16px; }
-    /* Remove button (×) in comparison table — bigger tap area */
     .compare-table .row-remove { font-size:22px; padding:6px 10px; }
-    /* Email form input bigger */
     .email-form-row input[type="email"] { font-size:16px; padding:12px 14px; }
-    /* Floating list button — bottom-right on mobile, not top (so it doesn't overlap map zoom buttons) */
-    .floating-list-btn { top:auto; bottom:14px; right:14px; padding:10px 16px;
-                          font-size:13px; border-radius:24px; }
+
+    /* ----- FLOATING MY LIST BUTTON (compact) ----- */
+    .floating-list-btn {
+      top:auto; bottom:14px; right:14px;
+      padding:10px 16px; font-size:13px; border-radius:24px;
+    }
+    /* ----- INFO MODAL ----- */
+    .info-modal-body { font-size:13px; line-height:1.55; color:#374151; }
+    .info-modal-body h3 { font-size:13px; color:#1f2937; margin:12px 0 4px; }
+    .info-modal-body .src { font-size:11.5px; color:var(--muted); }
   }
 </style>
 </head>
 <body>
+
+<!-- ===== MOBILE STICKY HEADER (visible only via @media max-width:900px) ===== -->
+<header class="mobile-header" id="mobile-header">
+  <div class="mh-logo"><span class="emo">🏫</span>School Explorer</div>
+  <button class="mh-icon-btn" id="mh-info-btn" aria-label="About this tool">ⓘ</button>
+  <button class="mh-icon-btn" id="mh-filter-btn" aria-label="Open filters">
+    ☰<span class="mh-badge" id="mh-filter-badge" style="display:none">0</span>
+  </button>
+</header>
+
+<!-- Dim overlay behind drawer -->
+<div class="drawer-overlay" id="drawer-overlay"></div>
+
 <div id="app">
   <aside id="sidebar">
+    <!-- Drawer header (mobile only — hidden on desktop via CSS) -->
+    <div class="drawer-header">
+      <div class="dh-title">Filters & Tools</div>
+      <div class="dh-actions">
+        <button class="dh-clear" id="dh-clear-btn" type="button">Clear</button>
+        <button class="dh-close" id="dh-close-btn" type="button" aria-label="Close">×</button>
+      </div>
+    </div>
+
     <h1>NC School Navigator</h1>
     <p class="intro-text">Find and explore public, charter, magnet and private schools across North Carolina. Compare programs, performance data, school assignments and educational options to find what may be the best fit for your family.</p>
     <div class="data-source">
@@ -602,6 +727,10 @@
       </div>
     </div>
 
+    <!-- Sticky apply bar at bottom of drawer (mobile only) -->
+    <div class="drawer-apply-bar">
+      <button id="dh-apply-btn" type="button">Show <span id="dh-apply-count">0</span> schools</button>
+    </div>
   </aside>
   <div id="map"></div>
 </div>
@@ -611,8 +740,27 @@
 
 <!-- Floating My List button -->
 <button id="floating-list-btn" class="floating-list-btn">
-  📚 <span>My School List</span> <span class="badge" id="floating-list-count">0</span>
+  📚 <span class="flb-text">My School List</span> <span class="badge" id="floating-list-count">0</span>
 </button>
+
+<!-- ===== INFO MODAL (mobile ⓘ button) ===== -->
+<div id="info-modal" class="modal-overlay">
+  <div class="modal-box" style="position:relative;max-width:480px">
+    <button class="modal-close" id="info-modal-close" aria-label="Close">×</button>
+    <h2>🏫 About NC School Explorer</h2>
+    <div class="info-modal-body">
+      <p>Find and explore public, charter, magnet and private schools across North Carolina. Compare programs, performance data, school assignments and educational options to find what may be the best fit for your family.</p>
+      <h3>📊 Data Sources</h3>
+      <p class="src">
+        NC DPI School Performance Grade 2023-24 · NCES EDGE Geographic Data 2023-24 · NCES CCD School Directory 2024-25 · WCPSS Magnet Directory · DPS Magnet Programs
+      </p>
+      <h3>🏛️ Coverage</h3>
+      <p class="src">2,647 public schools across all 100 NC counties. 2,541 schools with full DPI Performance Grade. Race/ethnicity data shown for Triangle area (437 schools); other counties pending NCES Membership upload.</p>
+      <h3>🏠 Fair Housing</h3>
+      <p class="src" style="font-style:italic">Equal Housing Opportunity · Fair Housing Act. School data is provided for informational purposes only. Anna Rukhlina and Dash Carolina do not steer or recommend neighborhoods based on protected characteristics.</p>
+    </div>
+  </div>
+</div>
 
 <!-- My List modal -->
 <div id="list-modal" class="modal-overlay">
@@ -775,8 +923,9 @@ function isMobile() { return window.innerWidth <= 900; }
     document.body.classList.toggle('is-mobile', mob);
     const fb = document.getElementById('floating-agent-banner');
     if (fb) fb.style.display = mob ? 'none' : '';
+    // On mobile, agent banner is reachable via popup + My List modal — keep hidden here
     const sb = document.getElementById('sidebar-agent-banner');
-    if (sb) sb.style.display = mob ? 'block' : 'none';
+    if (sb) sb.style.display = 'none';
   };
   apply();
   window.addEventListener('resize', apply);
@@ -1506,12 +1655,15 @@ function showCopyBlockedToast() {
 function renderAgentModalCard() {
   const slot = document.getElementById('agent-modal-card-slot');
   if (!slot) return;
-  slot.innerHTML = state.myList.size === 0 ? '' : `
+  const isEmpty = state.myList.size === 0;
+  slot.innerHTML = `
     <div class="agent-modal-card">
       ${agentPhotoHtml()}
       <div class="body">
-        <div class="h">🏠 Selected your schools?</div>
-        <div class="desc">I can help you compare nearby neighborhoods, home prices and available homes near your preferred schools.</div>
+        <div class="h">${isEmpty ? '🏠 Looking for homes nearby?' : '🏠 Selected your schools?'}</div>
+        <div class="desc">${isEmpty
+          ? 'I can help you find the right home near top-rated schools in the Triangle Area.'
+          : 'I can help you compare nearby neighborhoods, home prices and available homes near your preferred schools.'}</div>
         <div class="sig">— ${AGENT.name}, ${AGENT.title}</div>
         <a class="cta" href="${agentCallUrl()}" target="_blank" rel="noopener">Contact Anna →</a>
       </div>
@@ -1833,6 +1985,113 @@ document.getElementById('geo-reset').onclick = () => {
 // Geocoding panel is hidden — all 437 schools already have precise NCES coordinates.
 // Resilient: functions remain working if anyone activates the panel manually.
 // updateGeoUI(); // intentionally disabled
+
+/* =====================================================================
+   MOBILE UI: drawer (☰), info modal (ⓘ), filter badge, apply button
+   ===================================================================== */
+(function setupMobileUI(){
+  const body = document.body;
+  const drawerOverlay = document.getElementById('drawer-overlay');
+  const filterBtn = document.getElementById('mh-filter-btn');
+  const infoBtn = document.getElementById('mh-info-btn');
+  const closeBtn = document.getElementById('dh-close-btn');
+  const clearBtn = document.getElementById('dh-clear-btn');
+  const applyBtn = document.getElementById('dh-apply-btn');
+  const applyCount = document.getElementById('dh-apply-count');
+  const filterBadge = document.getElementById('mh-filter-badge');
+  const infoModal = document.getElementById('info-modal');
+  const infoClose = document.getElementById('info-modal-close');
+
+  function openDrawer(){ body.classList.add('drawer-open'); updateApplyCount(); }
+  function closeDrawer(){ body.classList.remove('drawer-open'); }
+  function openInfo(){ infoModal.classList.add('open'); }
+  function closeInfo(){ infoModal.classList.remove('open'); }
+
+  if (filterBtn) filterBtn.addEventListener('click', openDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+  if (applyBtn) applyBtn.addEventListener('click', closeDrawer);
+  if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
+  if (infoBtn) infoBtn.addEventListener('click', openInfo);
+  if (infoClose) infoClose.addEventListener('click', closeInfo);
+  if (infoModal) infoModal.addEventListener('click', (e)=>{
+    if (e.target === infoModal) closeInfo();
+  });
+
+  // Clear all filters (does NOT close drawer — user sees result, can tap Show)
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    // Reset state to defaults
+    state.counties = new Set(['Wake']);
+    state.levels = new Set();
+    state.stypes = new Set();
+    state.minRating = 1;
+    state.search = '';
+    const searchEl = document.getElementById('name-input');
+    if (searchEl) searchEl.value = '';
+    const rangeEl = document.getElementById('min-rating');
+    if (rangeEl) { rangeEl.value = 1; rangeEl.dispatchEvent(new Event('input')); }
+    // Re-render chips active states
+    document.querySelectorAll('.chips .chip').forEach(ch => {
+      const group = ch.closest('.filter-group');
+      if (!group) return;
+      const lbl = group.querySelector('label');
+      const txt = lbl ? lbl.textContent.toLowerCase() : '';
+      if (txt.includes('count')) ch.classList.toggle('active', ch.dataset.val === 'Wake');
+      else ch.classList.remove('active');
+    });
+    if (typeof render === 'function') render();
+    updateApplyCount(); updateFilterBadge();
+  });
+
+  // Count of active filters shown as red dot on ☰
+  function updateFilterBadge(){
+    if (!filterBadge) return;
+    let n = 0;
+    if (state.counties && !(state.counties.size === 1 && state.counties.has('Wake'))) n++;
+    if (state.levels && state.levels.size > 0) n++;
+    if (state.stypes && state.stypes.size > 0) n++;
+    if (state.minRating > 1) n++;
+    if (state.search && state.search.trim()) n++;
+    filterBadge.textContent = n;
+    filterBadge.style.display = n > 0 ? 'flex' : 'none';
+  }
+  function updateApplyCount(){
+    if (!applyCount || typeof visibleSchools !== 'function') return;
+    try { applyCount.textContent = visibleSchools().length; } catch(e){}
+  }
+
+  // Hook into render() so badge & count stay live
+  if (typeof window.render === 'function') {
+    const oldRender = window.render;
+    window.render = function(){
+      const r = oldRender.apply(this, arguments);
+      updateFilterBadge(); updateApplyCount();
+      return r;
+    };
+  } else if (typeof render === 'function') {
+    const oldRender = render;
+    // Monkey-patch global render symbol so any future calls also update UI
+    render = function(){
+      const r = oldRender.apply(this, arguments);
+      updateFilterBadge(); updateApplyCount();
+      return r;
+    };
+    window.render = render;
+  }
+  updateFilterBadge(); updateApplyCount();
+
+  // Compact "My List" label for floating button on mobile
+  function applyMobileLabels(){
+    const flbText = document.querySelector('#floating-list-btn .flb-text');
+    if (flbText) flbText.textContent = isMobile() ? 'My List' : 'My School List';
+  }
+  applyMobileLabels();
+  window.addEventListener('resize', applyMobileLabels);
+
+  // Close drawer on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeDrawer(); closeInfo(); }
+  });
+})();
 </script>
 </body>
 </html>
