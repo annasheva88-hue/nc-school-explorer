@@ -438,22 +438,21 @@
     }
     .mh-pill {
       position:relative; width:100%;
-      display:inline-flex; align-items:center; justify-content:space-between; gap:4px;
-      height:40px; padding:0 10px;
+      display:inline-flex; align-items:center; justify-content:center; gap:6px;
+      height:40px; padding:0 12px;
       background:#fff; border:1.5px solid var(--border); border-radius:10px;
-      font-size:13px; font-weight:600; color:#1f2937; cursor:pointer;
+      font-size:14px; font-weight:600; color:#1f2937; cursor:pointer;
       transition:border-color 0.15s, background 0.15s;
       white-space:nowrap;
     }
     .mh-pill:active { background:#f9fafb; }
     .mh-pill.active { border-color:#2563eb; background:#eff6ff; color:#1d4ed8; }
-    .mh-pill .pill-icon { font-size:14px; flex:none; }
     .mh-pill .pill-text {
-      font-size:13px; font-weight:700; flex:1; min-width:0;
+      font-size:14px; font-weight:700; min-width:0;
       overflow:hidden; text-overflow:ellipsis;
     }
     .mh-pill .pill-caret {
-      font-size:13px; color:#374151; flex:none;
+      font-size:11px; color:#374151; flex:none;
       font-weight:900; line-height:1;
     }
     .mh-pill.active .pill-caret { color:#2563eb; }
@@ -595,7 +594,7 @@
   <!-- Row 1: title + tagline + info -->
   <div class="mh-title-row">
     <div style="flex:1;min-width:0">
-      <div class="mh-logo"><span class="emo">🏫</span>NC School Explorer</div>
+      <div class="mh-logo">NC School Explorer</div>
       <div class="mh-tagline">Explore <strong>2,647 NC schools</strong> · check the data</div>
     </div>
     <button class="mh-icon-btn" id="mh-info-btn" aria-label="About this tool">ⓘ</button>
@@ -605,7 +604,6 @@
     <div class="mh-pill-col">
       <div class="mh-pill-label">County</div>
       <label class="mh-pill" id="pill-county">
-        <span class="pill-icon">📍</span>
         <span class="pill-text" id="pill-county-text">Wake</span>
         <span class="pill-caret">▼</span>
         <select id="pill-county-select" aria-label="County"></select>
@@ -614,11 +612,10 @@
     <div class="mh-pill-col">
       <div class="mh-pill-label">Level</div>
       <label class="mh-pill" id="pill-level">
-        <span class="pill-icon">🎓</span>
-        <span class="pill-text" id="pill-level-text">All</span>
+        <span class="pill-text" id="pill-level-text">See All</span>
         <span class="pill-caret">▼</span>
         <select id="pill-level-select" aria-label="School level">
-          <option value="">All levels</option>
+          <option value="">See All</option>
           <option value="Elementary">Elementary</option>
           <option value="Middle">Middle</option>
           <option value="High">High</option>
@@ -628,11 +625,10 @@
     <div class="mh-pill-col">
       <div class="mh-pill-label">School type</div>
       <label class="mh-pill" id="pill-stype">
-        <span class="pill-icon">🏫</span>
-        <span class="pill-text" id="pill-stype-text">All</span>
+        <span class="pill-text" id="pill-stype-text">See All</span>
         <span class="pill-caret">▼</span>
         <select id="pill-stype-select" aria-label="School type">
-          <option value="">All types</option>
+          <option value="">See All</option>
           <option value="Public">Public</option>
           <option value="Charter">Charter</option>
           <option value="Magnet">Magnet</option>
@@ -646,7 +642,7 @@
     <div class="mh-pill-col">
       <div class="mh-pill-label">&nbsp;</div>
       <button class="mh-pill mh-pill-more" id="mh-filter-btn" type="button" aria-label="Open more filters">
-        <span style="font-size:14px">☰</span><span class="pill-text">More</span>
+        <span class="pill-text">More</span>
         <span class="mh-badge" id="mh-filter-badge" style="display:none">0</span>
       </button>
     </div>
@@ -654,11 +650,9 @@
   <!-- Row 3: quick-action chips (Address + Magnet) — surfaces key tools on main screen -->
   <div class="mh-quick-row">
     <button class="mh-quick-chip mh-quick-orange" id="mh-quick-address" type="button">
-      <span class="qc-emo">🏫</span>
       <span class="qc-label">Check Address</span>
     </button>
     <button class="mh-quick-chip mh-quick-purple" id="mh-quick-magnet" type="button">
-      <span class="qc-emo">🎓</span>
       <span class="qc-label">Charter &amp; Magnet</span>
     </button>
   </div>
@@ -889,7 +883,7 @@
 
 <!-- Floating My List button -->
 <button id="floating-list-btn" class="floating-list-btn">
-  📚 <span class="flb-text">My School List</span> <span class="badge" id="floating-list-count">0</span>
+  <span class="flb-text">My School List</span> <span class="badge" id="floating-list-count">0</span>
 </button>
 
 <!-- ===== INFO MODAL (mobile ⓘ button) ===== -->
@@ -2205,17 +2199,17 @@ document.getElementById('geo-reset').onclick = () => {
 
   function updatePillLabels(){
     if (pillCountyText) {
-      if (state.counties.size === 0) { pillCountyText.textContent = 'All counties'; pillCounty && pillCounty.classList.remove('active'); }
+      if (state.counties.size === 0) { pillCountyText.textContent = 'See All'; pillCounty && pillCounty.classList.remove('active'); }
       else if (state.counties.size === 1) { pillCountyText.textContent = [...state.counties][0]; pillCounty && pillCounty.classList.add('active'); }
       else { pillCountyText.textContent = state.counties.size + ' counties'; pillCounty && pillCounty.classList.add('active'); }
     }
     if (pillLevelText) {
-      if (state.levels.size === 0) { pillLevelText.textContent = 'All'; pillLevel && pillLevel.classList.remove('active'); }
+      if (state.levels.size === 0) { pillLevelText.textContent = 'See All'; pillLevel && pillLevel.classList.remove('active'); }
       else if (state.levels.size === 1) { pillLevelText.textContent = [...state.levels][0]; pillLevel && pillLevel.classList.add('active'); }
       else { pillLevelText.textContent = state.levels.size + ' levels'; pillLevel && pillLevel.classList.add('active'); }
     }
     if (pillStypeText) {
-      if (state.stypes.size === 0) { pillStypeText.textContent = 'All'; pillStype && pillStype.classList.remove('active'); }
+      if (state.stypes.size === 0) { pillStypeText.textContent = 'See All'; pillStype && pillStype.classList.remove('active'); }
       else if (state.stypes.size === 1) { pillStypeText.textContent = [...state.stypes][0]; pillStype && pillStype.classList.add('active'); }
       else { pillStypeText.textContent = state.stypes.size + ' types'; pillStype && pillStype.classList.add('active'); }
     }
@@ -2236,7 +2230,7 @@ document.getElementById('geo-reset').onclick = () => {
   function populateCountyPill(){
     if (!pillCountySelect || typeof SCHOOLS === 'undefined' || !SCHOOLS.length) return;
     const counties = [...new Set(SCHOOLS.map(s => s.county).filter(Boolean))].sort();
-    pillCountySelect.innerHTML = '<option value="">All NC counties</option>' +
+    pillCountySelect.innerHTML = '<option value="">See All</option>' +
       counties.map(c => '<option value="' + c + '">' + c + '</option>').join('');
     updatePillLabels();
   }
