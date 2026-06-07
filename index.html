@@ -578,7 +578,7 @@
   <div class="mh-search-row">
     <label class="mh-search-wrap">
       <span class="mh-search-icon">🔍</span>
-      <input type="search" id="mh-search-input" placeholder="Search school or city...">
+      <input type="search" id="mh-search-input" placeholder="Search school, city, or ZIP...">
     </label>
     <button class="mh-filter-btn" id="mh-filter-btn" aria-label="Open filters">
       <span>☰ Filters</span>
@@ -714,7 +714,7 @@
 
     <div class="filter-group">
       <label>Search by school name</label>
-      <input id="name-input" type="search" placeholder="e.g., Wakefield, Hunter, Athens">
+      <input id="name-input" type="search" placeholder="School name, city, or ZIP (e.g., Raleigh, 27613)">
     </div>
 
     <div class="filter-group">
@@ -833,6 +833,18 @@
     <h2>🏫 About NC School Explorer</h2>
     <div class="info-modal-body">
       <p>Find and explore public, charter, magnet and private schools across North Carolina. Compare programs, performance data, school assignments and educational options to find what may be the best fit for your family.</p>
+      <h3>🗺️ How to use this tool</h3>
+      <p class="src">
+        • <strong>🔍 Search</strong> — by school name, city, or ZIP code (finds schools <em>physically located</em> there)<br>
+        • <strong>🏫 Check Address</strong> — official district lookup. Returns the school <em>assigned</em> to any home address, plus bus, calendar, and cap status<br>
+        • <strong>🎓 Charter &amp; Magnet</strong> — school-of-choice programs admit by lottery (not by address)<br>
+        • <strong>☰ Filters</strong> — narrow by county, level, school type, or score<br>
+        • <strong>📚 My List</strong> — save schools, compare side-by-side, download CSV
+      </p>
+      <h3>📍 City vs. assignment zone</h3>
+      <p class="src">
+        Schools in North Carolina are assigned by <strong>county district + zone boundaries</strong>, not by city. A school in Raleigh may serve some homes in Cary, and vice versa. For accurate assignment, always use <strong>Check Address</strong>.
+      </p>
       <h3>📊 Data Sources</h3>
       <p class="src">
         NC DPI School Performance Grade 2023-24 · NCES EDGE Geographic Data 2023-24 · NCES CCD School Directory 2024-25 · WCPSS Magnet Directory · DPS Magnet Programs
@@ -1269,8 +1281,14 @@ function visibleSchools() {
     if (state.stypes.size && !state.stypes.has(s.stype)) return false;
     if (state.minRating > 1 && (s.rating == null || s.rating < state.minRating)) return false;
     if (state.name) {
-      // Simple name search — ZIP filter was misleading (ZIP ≠ school assignment)
-      if (!s.name.toLowerCase().includes(state.name.toLowerCase())) return false;
+      // Search across school NAME, CITY, and ZIP — broader matching so
+      // typing "Raleigh" returns all Raleigh-located schools (not just those
+      // with "Raleigh" in name). Note: city is physical location, NOT assignment
+      // zone — for "what school is assigned to my home" use Check Address tool.
+      const q = state.name.toLowerCase();
+      const haystack = [s.name, s.city, s.county, s.zip, s.addr].
+        filter(Boolean).join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
     }
     // Distance filter (only if home is set and maxDistance configured)
     if (state.maxDistance != null && state.home) {
