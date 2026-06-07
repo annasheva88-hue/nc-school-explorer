@@ -421,26 +421,42 @@
       position:relative;
     }
     .mobile-header .mh-icon-btn:active { background:#f3f4f6; }
-    /* Filter pills row (Google Maps / Yelp pattern) */
+    /* Filter pills row with mini-labels above (Google Maps / Yelp pattern) */
     .mh-filter-pills {
       display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; padding-bottom:2px;
     }
     .mh-filter-pills::-webkit-scrollbar { display:none; }
+    .mh-pill-col {
+      display:flex; flex-direction:column; gap:3px; flex:1; min-width:0;
+    }
+    .mh-pill-label {
+      font-size:10px; font-weight:700; color:#6b7280;
+      text-transform:uppercase; letter-spacing:0.4px;
+      padding-left:6px; line-height:1.2;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
     .mh-pill {
-      position:relative; flex:none;
-      display:inline-flex; align-items:center; gap:5px;
-      height:38px; padding:0 12px;
-      background:#fff; border:1.5px solid var(--border); border-radius:99px;
+      position:relative; width:100%;
+      display:inline-flex; align-items:center; justify-content:space-between; gap:4px;
+      height:40px; padding:0 10px;
+      background:#fff; border:1.5px solid var(--border); border-radius:10px;
       font-size:13px; font-weight:600; color:#1f2937; cursor:pointer;
       transition:border-color 0.15s, background 0.15s;
       white-space:nowrap;
     }
     .mh-pill:active { background:#f9fafb; }
     .mh-pill.active { border-color:#2563eb; background:#eff6ff; color:#1d4ed8; }
-    .mh-pill .pill-icon { font-size:14px; }
-    .mh-pill .pill-text { font-size:13px; font-weight:700; }
-    .mh-pill .pill-caret { font-size:10px; color:#6b7280; margin-left:2px; }
+    .mh-pill .pill-icon { font-size:14px; flex:none; }
+    .mh-pill .pill-text {
+      font-size:13px; font-weight:700; flex:1; min-width:0;
+      overflow:hidden; text-overflow:ellipsis;
+    }
+    .mh-pill .pill-caret {
+      font-size:13px; color:#374151; flex:none;
+      font-weight:900; line-height:1;
+    }
+    .mh-pill.active .pill-caret { color:#2563eb; }
     /* Native select overlay — invisible but covers the pill (tap = open dropdown) */
     .mh-pill select {
       position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
@@ -449,9 +465,10 @@
     }
     .mh-pill-more {
       background:#2563eb; color:#fff; border-color:#2563eb;
+      justify-content:center; gap:6px;
     }
     .mh-pill-more:active { background:#1d4ed8; }
-    .mh-pill-more .pill-text { color:#fff; }
+    .mh-pill-more .pill-text { color:#fff; flex:none; }
     .mh-pill-more .mh-badge {
       position:absolute; top:-6px; right:-6px; background:#dc2626; color:#fff;
       min-width:18px; height:18px; border-radius:99px; padding:0 5px;
@@ -583,40 +600,56 @@
     </div>
     <button class="mh-icon-btn" id="mh-info-btn" aria-label="About this tool">ⓘ</button>
   </div>
-  <!-- Row 2: filter pills (Google Maps / Yelp pattern) — direct, visual, no typing required -->
+  <!-- Row 2: filter pills with mini-labels above (clarity) -->
   <div class="mh-filter-pills">
-    <label class="mh-pill" id="pill-county">
-      <span class="pill-icon">📍</span>
-      <span class="pill-text" id="pill-county-text">Wake</span>
-      <span class="pill-caret">▾</span>
-      <select id="pill-county-select" aria-label="County"></select>
-    </label>
-    <label class="mh-pill" id="pill-level">
-      <span class="pill-icon">🎓</span>
-      <span class="pill-text" id="pill-level-text">All</span>
-      <span class="pill-caret">▾</span>
-      <select id="pill-level-select" aria-label="Level">
-        <option value="">All levels</option>
-        <option value="Elementary">Elementary</option>
-        <option value="Middle">Middle</option>
-        <option value="High">High</option>
-      </select>
-    </label>
-    <label class="mh-pill" id="pill-score">
-      <span class="pill-icon">⭐</span>
-      <span class="pill-text" id="pill-score-text">Any</span>
-      <span class="pill-caret">▾</span>
-      <select id="pill-score-select" aria-label="Min score">
-        <option value="1">Any score</option>
-        <option value="5">5+</option>
-        <option value="7">7+</option>
-        <option value="9">9+</option>
-      </select>
-    </label>
-    <button class="mh-pill mh-pill-more" id="mh-filter-btn" type="button" aria-label="Open more filters">
-      <span>☰</span><span class="pill-text">More</span>
-      <span class="mh-badge" id="mh-filter-badge" style="display:none">0</span>
-    </button>
+    <div class="mh-pill-col">
+      <div class="mh-pill-label">County</div>
+      <label class="mh-pill" id="pill-county">
+        <span class="pill-icon">📍</span>
+        <span class="pill-text" id="pill-county-text">Wake</span>
+        <span class="pill-caret">▼</span>
+        <select id="pill-county-select" aria-label="County"></select>
+      </label>
+    </div>
+    <div class="mh-pill-col">
+      <div class="mh-pill-label">Level</div>
+      <label class="mh-pill" id="pill-level">
+        <span class="pill-icon">🎓</span>
+        <span class="pill-text" id="pill-level-text">All</span>
+        <span class="pill-caret">▼</span>
+        <select id="pill-level-select" aria-label="School level">
+          <option value="">All levels</option>
+          <option value="Elementary">Elementary</option>
+          <option value="Middle">Middle</option>
+          <option value="High">High</option>
+        </select>
+      </label>
+    </div>
+    <div class="mh-pill-col">
+      <div class="mh-pill-label">School type</div>
+      <label class="mh-pill" id="pill-stype">
+        <span class="pill-icon">🏫</span>
+        <span class="pill-text" id="pill-stype-text">All</span>
+        <span class="pill-caret">▼</span>
+        <select id="pill-stype-select" aria-label="School type">
+          <option value="">All types</option>
+          <option value="Public">Public</option>
+          <option value="Charter">Charter</option>
+          <option value="Magnet">Magnet</option>
+          <option value="Early College">Early College</option>
+          <option value="Virtual">Virtual</option>
+          <option value="Specialty">Specialty</option>
+          <option value="Alternative">Alternative</option>
+        </select>
+      </label>
+    </div>
+    <div class="mh-pill-col">
+      <div class="mh-pill-label">&nbsp;</div>
+      <button class="mh-pill mh-pill-more" id="mh-filter-btn" type="button" aria-label="Open more filters">
+        <span style="font-size:14px">☰</span><span class="pill-text">More</span>
+        <span class="mh-badge" id="mh-filter-badge" style="display:none">0</span>
+      </button>
+    </div>
   </div>
   <!-- Row 3: quick-action chips (Address + Magnet) — surfaces key tools on main screen -->
   <div class="mh-quick-row">
@@ -2159,16 +2192,16 @@ document.getElementById('geo-reset').onclick = () => {
   const nameInput = document.getElementById('name-input');
   const mhQuickAddress = document.getElementById('mh-quick-address');
   const mhQuickMagnet = document.getElementById('mh-quick-magnet');
-  // Filter pills (Google Maps pattern)
+  // Filter pills (Google Maps pattern): County, Level, School Type, More
   const pillCountySelect = document.getElementById('pill-county-select');
   const pillLevelSelect = document.getElementById('pill-level-select');
-  const pillScoreSelect = document.getElementById('pill-score-select');
+  const pillStypeSelect = document.getElementById('pill-stype-select');
   const pillCountyText = document.getElementById('pill-county-text');
   const pillLevelText = document.getElementById('pill-level-text');
-  const pillScoreText = document.getElementById('pill-score-text');
+  const pillStypeText = document.getElementById('pill-stype-text');
   const pillCounty = document.getElementById('pill-county');
   const pillLevel = document.getElementById('pill-level');
-  const pillScore = document.getElementById('pill-score');
+  const pillStype = document.getElementById('pill-stype');
 
   function updatePillLabels(){
     if (pillCountyText) {
@@ -2181,9 +2214,10 @@ document.getElementById('geo-reset').onclick = () => {
       else if (state.levels.size === 1) { pillLevelText.textContent = [...state.levels][0]; pillLevel && pillLevel.classList.add('active'); }
       else { pillLevelText.textContent = state.levels.size + ' levels'; pillLevel && pillLevel.classList.add('active'); }
     }
-    if (pillScoreText) {
-      if (state.minRating > 1) { pillScoreText.textContent = state.minRating + '+'; pillScore && pillScore.classList.add('active'); }
-      else { pillScoreText.textContent = 'Any'; pillScore && pillScore.classList.remove('active'); }
+    if (pillStypeText) {
+      if (state.stypes.size === 0) { pillStypeText.textContent = 'All'; pillStype && pillStype.classList.remove('active'); }
+      else if (state.stypes.size === 1) { pillStypeText.textContent = [...state.stypes][0]; pillStype && pillStype.classList.add('active'); }
+      else { pillStypeText.textContent = state.stypes.size + ' types'; pillStype && pillStype.classList.add('active'); }
     }
     if (pillCountySelect) {
       const cur = state.counties.size === 1 ? [...state.counties][0] : '';
@@ -2193,8 +2227,9 @@ document.getElementById('geo-reset').onclick = () => {
       const cur = state.levels.size === 1 ? [...state.levels][0] : '';
       if (pillLevelSelect.value !== cur) pillLevelSelect.value = cur;
     }
-    if (pillScoreSelect) {
-      if (pillScoreSelect.value != state.minRating) pillScoreSelect.value = state.minRating;
+    if (pillStypeSelect) {
+      const cur = state.stypes.size === 1 ? [...state.stypes][0] : '';
+      if (pillStypeSelect.value !== cur) pillStypeSelect.value = cur;
     }
   }
 
@@ -2212,15 +2247,17 @@ document.getElementById('geo-reset').onclick = () => {
       ch.classList.toggle('active', state.counties.has(ch.dataset.val));
     });
   }
-  function syncDrawerLevelChips(){
+  function syncDrawerGroupChips(groupLabelKeyword, stateSet){
     document.querySelectorAll('.filter-group .chips .chip').forEach(ch => {
       const group = ch.closest('.filter-group');
       if (!group) return;
       const lbl = group.querySelector('label');
-      if (!lbl || !lbl.textContent.toLowerCase().includes('level')) return;
-      ch.classList.toggle('active', state.levels.has(ch.dataset.val));
+      if (!lbl || !lbl.textContent.toLowerCase().includes(groupLabelKeyword)) return;
+      ch.classList.toggle('active', stateSet.has(ch.dataset.val));
     });
   }
+  function syncDrawerLevelChips(){ syncDrawerGroupChips('level', state.levels); }
+  function syncDrawerStypeChips(){ syncDrawerGroupChips('type', state.stypes); }
   function syncDrawerRange(){
     const rangeEl = document.getElementById('min-rating');
     if (rangeEl) { rangeEl.value = state.minRating; rangeEl.dispatchEvent(new Event('input')); }
@@ -2245,10 +2282,11 @@ document.getElementById('geo-reset').onclick = () => {
       if (typeof render === 'function') render();
     });
   }
-  if (pillScoreSelect) {
-    pillScoreSelect.addEventListener('change', (e) => {
-      state.minRating = parseInt(e.target.value, 10) || 1;
-      syncDrawerRange();
+  if (pillStypeSelect) {
+    pillStypeSelect.addEventListener('change', (e) => {
+      const v = e.target.value;
+      state.stypes = v ? new Set([v]) : new Set();
+      syncDrawerStypeChips();
       updatePillLabels();
       if (typeof render === 'function') render();
     });
