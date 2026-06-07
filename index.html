@@ -449,6 +449,22 @@
       font-size:10px; font-weight:800; display:flex; align-items:center;
       justify-content:center; border:2px solid #fff;
     }
+    /* Quick action chips row (Address + Magnet) */
+    .mh-quick-row { display:flex; gap:8px; }
+    .mh-quick-chip {
+      flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+      padding:10px 8px; border:none; border-radius:10px; cursor:pointer;
+      font-size:13px; font-weight:700; color:#fff; line-height:1.2;
+      box-shadow:0 1px 3px rgba(0,0,0,0.12);
+      min-height:42px;
+    }
+    .mh-quick-chip:active { transform:translateY(1px); }
+    .mh-quick-chip .qc-emo { font-size:16px; }
+    .mh-quick-chip .qc-label { white-space:nowrap; }
+    .mh-quick-orange { background:#f97316; }
+    .mh-quick-orange:active { background:#ea580c; }
+    .mh-quick-purple { background:#7c3aed; }
+    .mh-quick-purple:active { background:#6d28d9; }
 
     /* ----- HIDE DESKTOP-ONLY SIDEBAR ELEMENTS ----- */
     #sidebar h1,
@@ -554,7 +570,7 @@
   <div class="mh-title-row">
     <div style="flex:1;min-width:0">
       <div class="mh-logo"><span class="emo">🏫</span>NC School Explorer</div>
-      <div class="mh-tagline">Compare <strong>2,647 NC schools</strong> · rating · location</div>
+      <div class="mh-tagline">Explore <strong>2,647 NC schools</strong> · check the data</div>
     </div>
     <button class="mh-icon-btn" id="mh-info-btn" aria-label="About this tool">ⓘ</button>
   </div>
@@ -567,6 +583,17 @@
     <button class="mh-filter-btn" id="mh-filter-btn" aria-label="Open filters">
       <span>☰ Filters</span>
       <span class="mh-badge" id="mh-filter-badge" style="display:none">0</span>
+    </button>
+  </div>
+  <!-- Row 3: quick-action chips (Address + Magnet) — surfaces key tools on main screen -->
+  <div class="mh-quick-row">
+    <button class="mh-quick-chip mh-quick-orange" id="mh-quick-address" type="button">
+      <span class="qc-emo">🏫</span>
+      <span class="qc-label">Check Address</span>
+    </button>
+    <button class="mh-quick-chip mh-quick-purple" id="mh-quick-magnet" type="button">
+      <span class="qc-emo">🎓</span>
+      <span class="qc-label">Charter &amp; Magnet</span>
     </button>
   </div>
 </header>
@@ -603,6 +630,11 @@
     </button>
     <div class="assign-panel" id="assign-panel">
       <h4>Official district school assignment locators</h4>
+      <div style="font-size:11.5px;color:#374151;margin-bottom:8px;line-height:1.5">
+        Look up the school assigned to any home address. The official district tools also surface:
+        <strong>bus transportation</strong>, <strong>school calendar</strong>, and
+        <strong>enrollment capacity / cap status</strong> for that school.
+      </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Click your county to open the official address lookup tool:</div>
       <div id="primary-locators"></div>
       <button id="all-locators-toggle" type="button"
@@ -2075,6 +2107,30 @@ document.getElementById('geo-reset').onclick = () => {
   const infoClose = document.getElementById('info-modal-close');
   const mhSearchInput = document.getElementById('mh-search-input');
   const nameInput = document.getElementById('name-input');
+  const mhQuickAddress = document.getElementById('mh-quick-address');
+  const mhQuickMagnet = document.getElementById('mh-quick-magnet');
+
+  // Quick chips: open drawer + scroll to the relevant section (with expanded panel)
+  function openDrawerToSection(panelId, toggleId) {
+    body.classList.add('drawer-open');
+    // Defer to allow drawer transition
+    setTimeout(() => {
+      const panel = document.getElementById(panelId);
+      const toggle = document.getElementById(toggleId);
+      if (toggle && panel && !panel.classList.contains('open')) {
+        toggle.click(); // opens panel via existing handler
+      }
+      // Scroll the panel into view inside sidebar
+      const sb = document.getElementById('sidebar');
+      const tgt = document.getElementById(toggleId);
+      if (sb && tgt) {
+        const tgtTop = tgt.getBoundingClientRect().top - sb.getBoundingClientRect().top + sb.scrollTop;
+        sb.scrollTo({ top: Math.max(0, tgtTop - 60), behavior: 'smooth' });
+      }
+    }, 320);
+  }
+  if (mhQuickAddress) mhQuickAddress.addEventListener('click', () => openDrawerToSection('assign-panel', 'assign-toggle'));
+  if (mhQuickMagnet) mhQuickMagnet.addEventListener('click', () => openDrawerToSection('magnet-panel', 'magnet-toggle'));
 
   // Mobile search input — sync with state.name + drawer's name-input
   if (mhSearchInput) {
