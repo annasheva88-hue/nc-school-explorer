@@ -291,11 +291,14 @@
   /* Belt-and-suspenders: also hide via body.is-mobile class for cache resilience */
   body.is-mobile .floating-agent-banner { display:none !important; }
   body.is-mobile #sidebar-agent-banner { display:none !important; }
-  /* Constrain popup height so it always fits in viewport — scrollable internally.
-     Combined with autoPan:true with small padding, this gives a stable UX. */
-  .leaflet-popup-content { max-height:75vh; overflow-y:auto; overscroll-behavior:contain; }
-  .leaflet-popup-content::-webkit-scrollbar { width:6px; }
-  .leaflet-popup-content::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.2); border-radius:3px; }
+  /* Popup uses Leaflet's native maxHeight option (set in bindPopup) — Leaflet
+     handles internal scrolling and knows the actual popup size for autoPan. */
+  .leaflet-popup-content { overscroll-behavior:contain; }
+  .leaflet-popup-scrolled { padding-right:8px; }
+  .leaflet-popup-content::-webkit-scrollbar,
+  .leaflet-popup-scrolled::-webkit-scrollbar { width:6px; }
+  .leaflet-popup-content::-webkit-scrollbar-thumb,
+  .leaflet-popup-scrolled::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.2); border-radius:3px; }
 
   /* Compact version for popup — extra spacing/border for separation */
   .agent-mini { display:flex; gap:10px; align-items:center; padding:12px 14px;
@@ -386,12 +389,11 @@
     #app { grid-template-columns: 1fr; grid-template-rows: 1fr; flex:1; min-height:0; height:auto; }
     #map { height:100% !important; }
 
-    /* ----- MOBILE STICKY HEADER ----- */
+    /* ----- MOBILE STICKY HEADER (2-row: title + search) ----- */
     .mobile-header {
-      display:flex; align-items:center; gap:8px; flex:none;
-      min-height:54px; background:#fff;
-      border-bottom:1px solid var(--border);
-      padding:8px 12px;
+      display:flex; flex-direction:column; gap:8px; flex:none;
+      background:#fff; border-bottom:1px solid var(--border);
+      padding:8px 12px 10px;
       /* Safe area for iPhone Dynamic Island / notch / status bar */
       padding-top:calc(8px + env(safe-area-inset-top, 0px));
       padding-left:calc(12px + env(safe-area-inset-left, 0px));
@@ -399,21 +401,50 @@
       z-index:1200;
       box-shadow:0 2px 6px rgba(0,0,0,0.08);
     }
+    /* Title row */
+    .mh-title-row { display:flex; align-items:center; gap:8px; }
     .mobile-header .mh-logo {
-      font-size:14px; font-weight:800; color:#1f2937; flex:1; min-width:0;
+      font-size:15px; font-weight:800; color:#1f2937; flex:1; min-width:0;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      letter-spacing:-0.2px;
+      letter-spacing:-0.2px; line-height:1.15;
     }
     .mobile-header .mh-logo .emo { margin-right:5px; }
+    .mobile-header .mh-tagline {
+      font-size:11px; color:#6b7280; line-height:1.3;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .mobile-header .mh-tagline strong { color:#2563eb; font-weight:700; }
     .mobile-header .mh-icon-btn {
-      width:40px; height:40px; border:1px solid var(--border); border-radius:50%;
-      background:#fff; cursor:pointer; font-size:18px; padding:0;
+      width:36px; height:36px; border:1px solid var(--border); border-radius:50%;
+      background:#fff; cursor:pointer; font-size:16px; padding:0; flex:none;
       display:flex; align-items:center; justify-content:center; color:#1f2937;
       position:relative;
     }
     .mobile-header .mh-icon-btn:active { background:#f3f4f6; }
-    .mobile-header .mh-icon-btn .mh-badge {
-      position:absolute; top:-4px; right:-4px; background:#dc2626; color:#fff;
+    /* Search + Filters row */
+    .mh-search-row { display:flex; align-items:center; gap:8px; }
+    .mh-search-wrap {
+      flex:1; position:relative; display:flex; align-items:center;
+      background:#f3f4f6; border:1px solid var(--border); border-radius:10px;
+      padding:0 10px; height:40px;
+    }
+    .mh-search-wrap:focus-within { background:#fff; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12); }
+    .mh-search-wrap .mh-search-icon { color:#6b7280; font-size:14px; margin-right:6px; }
+    .mh-search-wrap input {
+      flex:1; border:none !important; background:transparent !important;
+      font-size:14px !important; outline:none; padding:0 !important;
+      width:100% !important;
+    }
+    .mh-search-wrap input::placeholder { color:#9ca3af; }
+    .mh-filter-btn {
+      display:inline-flex; align-items:center; gap:6px; height:40px;
+      padding:0 14px; border-radius:10px; border:1.5px solid #2563eb;
+      background:#2563eb; color:#fff; font-size:13px; font-weight:700; cursor:pointer;
+      position:relative;
+    }
+    .mh-filter-btn:active { background:#1d4ed8; }
+    .mh-filter-btn .mh-badge {
+      position:absolute; top:-6px; right:-6px; background:#dc2626; color:#fff;
       min-width:18px; height:18px; border-radius:99px; padding:0 5px;
       font-size:10px; font-weight:800; display:flex; align-items:center;
       justify-content:center; border:2px solid #fff;
@@ -519,11 +550,25 @@
 
 <!-- ===== MOBILE STICKY HEADER (visible only via @media max-width:900px) ===== -->
 <header class="mobile-header" id="mobile-header">
-  <div class="mh-logo"><span class="emo">🏫</span>NC Schools</div>
-  <button class="mh-icon-btn" id="mh-info-btn" aria-label="About this tool">ⓘ</button>
-  <button class="mh-icon-btn" id="mh-filter-btn" aria-label="Open filters">
-    ☰<span class="mh-badge" id="mh-filter-badge" style="display:none">0</span>
-  </button>
+  <!-- Row 1: title + tagline + info -->
+  <div class="mh-title-row">
+    <div style="flex:1;min-width:0">
+      <div class="mh-logo"><span class="emo">🏫</span>NC School Explorer</div>
+      <div class="mh-tagline">Compare <strong>2,647 NC schools</strong> · rating · location</div>
+    </div>
+    <button class="mh-icon-btn" id="mh-info-btn" aria-label="About this tool">ⓘ</button>
+  </div>
+  <!-- Row 2: search input + filters button -->
+  <div class="mh-search-row">
+    <label class="mh-search-wrap">
+      <span class="mh-search-icon">🔍</span>
+      <input type="search" id="mh-search-input" placeholder="Search school or city...">
+    </label>
+    <button class="mh-filter-btn" id="mh-filter-btn" aria-label="Open filters">
+      <span>☰ Filters</span>
+      <span class="mh-badge" id="mh-filter-badge" style="display:none">0</span>
+    </button>
+  </div>
 </header>
 
 <!-- Dim overlay behind drawer -->
@@ -1007,10 +1052,15 @@ SCHOOLS.forEach(s => {
   // Mobile: fullscreen modal (overlay)
   m.bindPopup(() => renderPopup(s), {
     maxWidth: 340,
+    // Leaflet-native maxHeight: makes popup internally scrollable AND lets
+    // Leaflet know real popup size so autoPan calculates correctly.
+    // Picked 460px so even on 13" laptop (~700px viewport) full popup fits.
+    maxHeight: 460,
     autoPan: true,
-    autoPanPaddingTopLeft: [10, 10],
-    autoPanPaddingBottomRight: [10, 10],
-    keepInView: false
+    // Generous padding so popup never gets cut off at top (where school name lives)
+    autoPanPaddingTopLeft: [20, 70],
+    autoPanPaddingBottomRight: [20, 30],
+    keepInView: true
   });
   m.on('click', function(e) {
     if (isMobile()) {
@@ -1226,8 +1276,22 @@ function render() {
   list.querySelectorAll('.school-item').forEach(el => {
     el.onclick = () => {
       const s = SCHOOLS.find(x => x.id === el.dataset.id);
-      map.setView([s.lat, s.lng], 14);
-      markerById[s.id].openPopup();
+      // On mobile: open fullscreen modal (no popup, no map jump needed)
+      if (isMobile()) {
+        openMobileSchoolModal(s);
+        return;
+      }
+      // Desktop: position marker in BOTTOM-third of viewport so the popup
+      // (which opens upward) has room. Then open popup — autoPan keeps it visible.
+      const targetZoom = Math.max(map.getZoom(), 13);
+      const projected = map.project([s.lat, s.lng], targetZoom);
+      // Shift target down by ~30% of viewport height so popup gets top room
+      const offsetY = map.getSize().y * 0.30;
+      const centerPx = projected.subtract([0, -offsetY]);
+      const newCenter = map.unproject(centerPx, targetZoom);
+      map.setView(newCenter, targetZoom, { animate: true });
+      // Open popup after pan settles so autoPan doesn't fight setView
+      setTimeout(() => { markerById[s.id].openPopup(); }, 250);
     };
   });
   document.getElementById('stats').textContent = `Showing ${items.length} of ${SCHOOLS.length} schools`;
@@ -2009,6 +2073,21 @@ document.getElementById('geo-reset').onclick = () => {
   const filterBadge = document.getElementById('mh-filter-badge');
   const infoModal = document.getElementById('info-modal');
   const infoClose = document.getElementById('info-modal-close');
+  const mhSearchInput = document.getElementById('mh-search-input');
+  const nameInput = document.getElementById('name-input');
+
+  // Mobile search input — sync with state.name + drawer's name-input
+  if (mhSearchInput) {
+    mhSearchInput.addEventListener('input', (e) => {
+      state.name = e.target.value.trim();
+      if (nameInput) nameInput.value = mhSearchInput.value;
+      if (typeof render === 'function') render();
+    });
+  }
+  // Reflect drawer-name-input edits back to header search
+  if (nameInput && mhSearchInput) {
+    nameInput.addEventListener('input', () => { mhSearchInput.value = nameInput.value; });
+  }
 
   function openDrawer(){ body.classList.add('drawer-open'); updateApplyCount(); }
   function closeDrawer(){ body.classList.remove('drawer-open'); }
@@ -2032,9 +2111,9 @@ document.getElementById('geo-reset').onclick = () => {
     state.levels = new Set();
     state.stypes = new Set();
     state.minRating = 1;
-    state.search = '';
-    const searchEl = document.getElementById('name-input');
-    if (searchEl) searchEl.value = '';
+    state.name = '';
+    if (nameInput) nameInput.value = '';
+    if (mhSearchInput) mhSearchInput.value = '';
     const rangeEl = document.getElementById('min-rating');
     if (rangeEl) { rangeEl.value = 1; rangeEl.dispatchEvent(new Event('input')); }
     // Re-render chips active states
@@ -2058,7 +2137,7 @@ document.getElementById('geo-reset').onclick = () => {
     if (state.levels && state.levels.size > 0) n++;
     if (state.stypes && state.stypes.size > 0) n++;
     if (state.minRating > 1) n++;
-    if (state.search && state.search.trim()) n++;
+    if (state.name && state.name.trim()) n++;
     filterBadge.textContent = n;
     filterBadge.style.display = n > 0 ? 'flex' : 'none';
   }
