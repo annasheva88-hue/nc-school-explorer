@@ -421,29 +421,38 @@
       position:relative;
     }
     .mobile-header .mh-icon-btn:active { background:#f3f4f6; }
-    /* Search + Filters row */
-    .mh-search-row { display:flex; align-items:center; gap:8px; }
-    .mh-search-wrap {
-      flex:1; position:relative; display:flex; align-items:center;
-      background:#f3f4f6; border:1px solid var(--border); border-radius:10px;
-      padding:0 10px; height:40px;
+    /* Filter pills row (Google Maps / Yelp pattern) */
+    .mh-filter-pills {
+      display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+      scrollbar-width:none; padding-bottom:2px;
     }
-    .mh-search-wrap:focus-within { background:#fff; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12); }
-    .mh-search-wrap .mh-search-icon { color:#6b7280; font-size:14px; margin-right:6px; }
-    .mh-search-wrap input {
-      flex:1; border:none !important; background:transparent !important;
-      font-size:14px !important; outline:none; padding:0 !important;
-      width:100% !important;
+    .mh-filter-pills::-webkit-scrollbar { display:none; }
+    .mh-pill {
+      position:relative; flex:none;
+      display:inline-flex; align-items:center; gap:5px;
+      height:38px; padding:0 12px;
+      background:#fff; border:1.5px solid var(--border); border-radius:99px;
+      font-size:13px; font-weight:600; color:#1f2937; cursor:pointer;
+      transition:border-color 0.15s, background 0.15s;
+      white-space:nowrap;
     }
-    .mh-search-wrap input::placeholder { color:#9ca3af; }
-    .mh-filter-btn {
-      display:inline-flex; align-items:center; gap:6px; height:40px;
-      padding:0 14px; border-radius:10px; border:1.5px solid #2563eb;
-      background:#2563eb; color:#fff; font-size:13px; font-weight:700; cursor:pointer;
-      position:relative;
+    .mh-pill:active { background:#f9fafb; }
+    .mh-pill.active { border-color:#2563eb; background:#eff6ff; color:#1d4ed8; }
+    .mh-pill .pill-icon { font-size:14px; }
+    .mh-pill .pill-text { font-size:13px; font-weight:700; }
+    .mh-pill .pill-caret { font-size:10px; color:#6b7280; margin-left:2px; }
+    /* Native select overlay — invisible but covers the pill (tap = open dropdown) */
+    .mh-pill select {
+      position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
+      font-size:16px; /* prevent iOS zoom */
+      border:none; background:transparent;
     }
-    .mh-filter-btn:active { background:#1d4ed8; }
-    .mh-filter-btn .mh-badge {
+    .mh-pill-more {
+      background:#2563eb; color:#fff; border-color:#2563eb;
+    }
+    .mh-pill-more:active { background:#1d4ed8; }
+    .mh-pill-more .pill-text { color:#fff; }
+    .mh-pill-more .mh-badge {
       position:absolute; top:-6px; right:-6px; background:#dc2626; color:#fff;
       min-width:18px; height:18px; border-radius:99px; padding:0 5px;
       font-size:10px; font-weight:800; display:flex; align-items:center;
@@ -574,14 +583,38 @@
     </div>
     <button class="mh-icon-btn" id="mh-info-btn" aria-label="About this tool">ⓘ</button>
   </div>
-  <!-- Row 2: search input + filters button -->
-  <div class="mh-search-row">
-    <label class="mh-search-wrap">
-      <span class="mh-search-icon">🔍</span>
-      <input type="search" id="mh-search-input" placeholder="Search school, city, or ZIP...">
+  <!-- Row 2: filter pills (Google Maps / Yelp pattern) — direct, visual, no typing required -->
+  <div class="mh-filter-pills">
+    <label class="mh-pill" id="pill-county">
+      <span class="pill-icon">📍</span>
+      <span class="pill-text" id="pill-county-text">Wake</span>
+      <span class="pill-caret">▾</span>
+      <select id="pill-county-select" aria-label="County"></select>
     </label>
-    <button class="mh-filter-btn" id="mh-filter-btn" aria-label="Open filters">
-      <span>☰ Filters</span>
+    <label class="mh-pill" id="pill-level">
+      <span class="pill-icon">🎓</span>
+      <span class="pill-text" id="pill-level-text">All</span>
+      <span class="pill-caret">▾</span>
+      <select id="pill-level-select" aria-label="Level">
+        <option value="">All levels</option>
+        <option value="Elementary">Elementary</option>
+        <option value="Middle">Middle</option>
+        <option value="High">High</option>
+      </select>
+    </label>
+    <label class="mh-pill" id="pill-score">
+      <span class="pill-icon">⭐</span>
+      <span class="pill-text" id="pill-score-text">Any</span>
+      <span class="pill-caret">▾</span>
+      <select id="pill-score-select" aria-label="Min score">
+        <option value="1">Any score</option>
+        <option value="5">5+</option>
+        <option value="7">7+</option>
+        <option value="9">9+</option>
+      </select>
+    </label>
+    <button class="mh-pill mh-pill-more" id="mh-filter-btn" type="button" aria-label="Open more filters">
+      <span>☰</span><span class="pill-text">More</span>
       <span class="mh-badge" id="mh-filter-badge" style="display:none">0</span>
     </button>
   </div>
@@ -2123,10 +2156,103 @@ document.getElementById('geo-reset').onclick = () => {
   const filterBadge = document.getElementById('mh-filter-badge');
   const infoModal = document.getElementById('info-modal');
   const infoClose = document.getElementById('info-modal-close');
-  const mhSearchInput = document.getElementById('mh-search-input');
   const nameInput = document.getElementById('name-input');
   const mhQuickAddress = document.getElementById('mh-quick-address');
   const mhQuickMagnet = document.getElementById('mh-quick-magnet');
+  // Filter pills (Google Maps pattern)
+  const pillCountySelect = document.getElementById('pill-county-select');
+  const pillLevelSelect = document.getElementById('pill-level-select');
+  const pillScoreSelect = document.getElementById('pill-score-select');
+  const pillCountyText = document.getElementById('pill-county-text');
+  const pillLevelText = document.getElementById('pill-level-text');
+  const pillScoreText = document.getElementById('pill-score-text');
+  const pillCounty = document.getElementById('pill-county');
+  const pillLevel = document.getElementById('pill-level');
+  const pillScore = document.getElementById('pill-score');
+
+  function updatePillLabels(){
+    if (pillCountyText) {
+      if (state.counties.size === 0) { pillCountyText.textContent = 'All counties'; pillCounty && pillCounty.classList.remove('active'); }
+      else if (state.counties.size === 1) { pillCountyText.textContent = [...state.counties][0]; pillCounty && pillCounty.classList.add('active'); }
+      else { pillCountyText.textContent = state.counties.size + ' counties'; pillCounty && pillCounty.classList.add('active'); }
+    }
+    if (pillLevelText) {
+      if (state.levels.size === 0) { pillLevelText.textContent = 'All'; pillLevel && pillLevel.classList.remove('active'); }
+      else if (state.levels.size === 1) { pillLevelText.textContent = [...state.levels][0]; pillLevel && pillLevel.classList.add('active'); }
+      else { pillLevelText.textContent = state.levels.size + ' levels'; pillLevel && pillLevel.classList.add('active'); }
+    }
+    if (pillScoreText) {
+      if (state.minRating > 1) { pillScoreText.textContent = state.minRating + '+'; pillScore && pillScore.classList.add('active'); }
+      else { pillScoreText.textContent = 'Any'; pillScore && pillScore.classList.remove('active'); }
+    }
+    if (pillCountySelect) {
+      const cur = state.counties.size === 1 ? [...state.counties][0] : '';
+      if (pillCountySelect.value !== cur) pillCountySelect.value = cur;
+    }
+    if (pillLevelSelect) {
+      const cur = state.levels.size === 1 ? [...state.levels][0] : '';
+      if (pillLevelSelect.value !== cur) pillLevelSelect.value = cur;
+    }
+    if (pillScoreSelect) {
+      if (pillScoreSelect.value != state.minRating) pillScoreSelect.value = state.minRating;
+    }
+  }
+
+  function populateCountyPill(){
+    if (!pillCountySelect || typeof SCHOOLS === 'undefined' || !SCHOOLS.length) return;
+    const counties = [...new Set(SCHOOLS.map(s => s.county).filter(Boolean))].sort();
+    pillCountySelect.innerHTML = '<option value="">All NC counties</option>' +
+      counties.map(c => '<option value="' + c + '">' + c + '</option>').join('');
+    updatePillLabels();
+  }
+  populateCountyPill();
+
+  function syncDrawerCountyChips(){
+    document.querySelectorAll('#county-primary .chip, #all-counties .chip').forEach(ch => {
+      ch.classList.toggle('active', state.counties.has(ch.dataset.val));
+    });
+  }
+  function syncDrawerLevelChips(){
+    document.querySelectorAll('.filter-group .chips .chip').forEach(ch => {
+      const group = ch.closest('.filter-group');
+      if (!group) return;
+      const lbl = group.querySelector('label');
+      if (!lbl || !lbl.textContent.toLowerCase().includes('level')) return;
+      ch.classList.toggle('active', state.levels.has(ch.dataset.val));
+    });
+  }
+  function syncDrawerRange(){
+    const rangeEl = document.getElementById('min-rating');
+    if (rangeEl) { rangeEl.value = state.minRating; rangeEl.dispatchEvent(new Event('input')); }
+  }
+
+  // Pill: County change → single-select county
+  if (pillCountySelect) {
+    pillCountySelect.addEventListener('change', (e) => {
+      const v = e.target.value;
+      state.counties = v ? new Set([v]) : new Set();
+      syncDrawerCountyChips();
+      updatePillLabels();
+      if (typeof render === 'function') render();
+    });
+  }
+  if (pillLevelSelect) {
+    pillLevelSelect.addEventListener('change', (e) => {
+      const v = e.target.value;
+      state.levels = v ? new Set([v]) : new Set();
+      syncDrawerLevelChips();
+      updatePillLabels();
+      if (typeof render === 'function') render();
+    });
+  }
+  if (pillScoreSelect) {
+    pillScoreSelect.addEventListener('change', (e) => {
+      state.minRating = parseInt(e.target.value, 10) || 1;
+      syncDrawerRange();
+      updatePillLabels();
+      if (typeof render === 'function') render();
+    });
+  }
 
   // Quick chips: open drawer + scroll to the relevant section (with expanded panel)
   function openDrawerToSection(panelId, toggleId) {
@@ -2150,18 +2276,6 @@ document.getElementById('geo-reset').onclick = () => {
   if (mhQuickAddress) mhQuickAddress.addEventListener('click', () => openDrawerToSection('assign-panel', 'assign-toggle'));
   if (mhQuickMagnet) mhQuickMagnet.addEventListener('click', () => openDrawerToSection('magnet-panel', 'magnet-toggle'));
 
-  // Mobile search input — sync with state.name + drawer's name-input
-  if (mhSearchInput) {
-    mhSearchInput.addEventListener('input', (e) => {
-      state.name = e.target.value.trim();
-      if (nameInput) nameInput.value = mhSearchInput.value;
-      if (typeof render === 'function') render();
-    });
-  }
-  // Reflect drawer-name-input edits back to header search
-  if (nameInput && mhSearchInput) {
-    nameInput.addEventListener('input', () => { mhSearchInput.value = nameInput.value; });
-  }
 
   function openDrawer(){ body.classList.add('drawer-open'); updateApplyCount(); }
   function closeDrawer(){ body.classList.remove('drawer-open'); }
@@ -2187,7 +2301,6 @@ document.getElementById('geo-reset').onclick = () => {
     state.minRating = 1;
     state.name = '';
     if (nameInput) nameInput.value = '';
-    if (mhSearchInput) mhSearchInput.value = '';
     const rangeEl = document.getElementById('min-rating');
     if (rangeEl) { rangeEl.value = 1; rangeEl.dispatchEvent(new Event('input')); }
     // Re-render chips active states
@@ -2225,7 +2338,7 @@ document.getElementById('geo-reset').onclick = () => {
     const oldRender = window.render;
     window.render = function(){
       const r = oldRender.apply(this, arguments);
-      updateFilterBadge(); updateApplyCount();
+      updateFilterBadge(); updateApplyCount(); updatePillLabels();
       return r;
     };
   } else if (typeof render === 'function') {
@@ -2233,12 +2346,12 @@ document.getElementById('geo-reset').onclick = () => {
     // Monkey-patch global render symbol so any future calls also update UI
     render = function(){
       const r = oldRender.apply(this, arguments);
-      updateFilterBadge(); updateApplyCount();
+      updateFilterBadge(); updateApplyCount(); updatePillLabels();
       return r;
     };
     window.render = render;
   }
-  updateFilterBadge(); updateApplyCount();
+  updateFilterBadge(); updateApplyCount(); updatePillLabels(); populateCountyPill();
 
   // Compact "My List" label for floating button on mobile
   function applyMobileLabels(){
