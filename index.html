@@ -1284,11 +1284,13 @@ function renderPopup(s) {
   // Sorted by proportion (largest → darkest) so the bar reflects composition
   // without implying any group hierarchy.
   const GREEN_SHADES = ['#00441b','#006d2c','#238b45','#41ab5d','#74c476','#a1d99b','#c7e9c0'];
+  // Short single-letter labels (with full name in tooltip).
+  // A=Asian, W=White, B=Black, H=Hispanic, 2+=Multiracial, AI=AIAN, NH=NHPI
   const racesRaw = [
-    ['White', s.pct_white], ['Black', s.pct_black],
-    ['Hispanic', s.pct_hisp], ['Asian', s.pct_asian],
-    ['2+', s.pct_two], ['AIAN', s.pct_aian],
-    ['NHPI', s.pct_nhpi],
+    ['W', s.pct_white, 'White'], ['B', s.pct_black, 'Black'],
+    ['H', s.pct_hisp, 'Hispanic'], ['A', s.pct_asian, 'Asian'],
+    ['2+', s.pct_two, 'Two or more races'], ['AI', s.pct_aian, 'American Indian / Alaska Native'],
+    ['NH', s.pct_nhpi, 'Native Hawaiian / Pacific Islander'],
   ].filter(r => r[1] != null && r[1] > 0);
   racesRaw.sort((a, b) => b[1] - a[1]);
   const races = racesRaw.map((r, i) => [...r, GREEN_SHADES[Math.min(i, GREEN_SHADES.length - 1)]]);
@@ -1384,9 +1386,9 @@ function renderPopup(s) {
     </details>
 
     <!-- Demographics section — moved to end, percentages only (no bar) -->
-    <div class="section-cap" style="margin-top:14px">Student Demographics</div>
-    <div class="section-desc">Enrollment by race/ethnicity (NCES ELSI 2023-24).</div>
-    ${races.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px 14px;font-size:11.5px;color:#1f2937;margin-top:4px">${races.map(r=>`<span><strong>${r[0]}:</strong> ${r[1]}%</span>`).join('')}</div>` : '<div style="font-size:11px;color:var(--muted);font-style:italic">Enrollment data not available</div>'}
+    <div class="section-cap" style="margin-top:14px">School Diversity</div>
+    <div class="section-desc">Source: NCES ELSI 2023-24. Provided for informational purposes only.</div>
+    ${races.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px 14px;font-size:11.5px;color:#1f2937;margin-top:4px">${races.map(r=>`<span title="${r[2]||r[0]}"><strong>${r[0]}:</strong> ${r[1]}%</span>`).join('')}</div>` : '<div style="font-size:11px;color:var(--muted);font-style:italic">Enrollment data not available</div>'}
     <div class="fh-note">Equal Housing Opportunity · Fair Housing Act</div>
 
     <div class="popup-footer">Coordinates: NCES EDGE 2023-24</div>
