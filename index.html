@@ -122,6 +122,13 @@
   .pi-label { font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px; }
   .pi-val { font-size:13px; font-weight:600; color:#1f2937; margin-top:2px; }
   .fh-note { margin-top:6px; font-size:10px; color:var(--muted); font-style:italic; }
+  /* Fair Housing disclaimer block for My List modal */
+  .fair-housing-disclaimer {
+    margin-top:14px; padding:12px 14px;
+    background:#f9fafb; border-left:3px solid #6b7280; border-radius:4px;
+    font-size:11px; color:#374151; line-height:1.55;
+  }
+  .fair-housing-disclaimer strong { color:#1f2937; font-size:11.5px; }
   .contacts-details { margin-top:10px; }
   .contacts-details summary { cursor:pointer; font-size:13px; font-weight:700; color:#2563eb; }
   .contacts-details summary:hover { color:#1d4ed8; text-decoration:underline; }
@@ -995,6 +1002,18 @@
       Schools you've added from the map. Compare side-by-side, download as CSV, or email the report.
     </div>
     <div id="list-table-wrap"></div>
+
+    <!-- Fair Housing compliance disclaimer (required by NAR Code of Ethics Article 10 / HUD) -->
+    <div class="fair-housing-disclaimer">
+      <strong>Equal Housing Opportunity · Fair Housing Act</strong><br>
+      School data is sourced from NC DPI and NCES and provided for informational purposes only.
+      Anna Rukhlina and Dash Carolina do not steer or recommend neighborhoods, schools, or homes
+      based on race, color, religion, sex, familial status, national origin, disability, or any
+      other protected characteristic. School performance and demographic data should not be the
+      sole basis for housing decisions. Buyers are encouraged to independently verify school
+      assignments, ratings, and other information directly with the school district.
+    </div>
+
     <div class="modal-actions">
       <button class="btn-primary" id="email-list-btn">📧 Email My Report</button>
       <button class="btn-secondary" id="download-csv-btn">📥 Download CSV</button>
@@ -1931,14 +1950,17 @@ function renderListTable() {
     return;
   }
   const items = [...state.myList].map(id => SCHOOLS.find(s => s.id === id)).filter(Boolean);
-  // Demographics as compact text percentages (sorted by size, no bar)
+  // School Diversity — compact single-letter labels (consistent with popup)
+  // W=White · B=Black · H=Hispanic · A=Asian · 2+=Two or more · AI=AIAN · NH=NHPI
   const demoText = (s) => {
     const races = [
-      ['W', s.pct_white], ['B', s.pct_black], ['H', s.pct_hisp],
-      ['A', s.pct_asian], ['2+', s.pct_two], ['AIAN', s.pct_aian], ['NHPI', s.pct_nhpi]
+      ['W', s.pct_white, 'White'], ['B', s.pct_black, 'Black'], ['H', s.pct_hisp, 'Hispanic'],
+      ['A', s.pct_asian, 'Asian'], ['2+', s.pct_two, 'Two or more races'],
+      ['AI', s.pct_aian, 'American Indian / Alaska Native'],
+      ['NH', s.pct_nhpi, 'Native Hawaiian / Pacific Islander']
     ].filter(r => r[1] != null && r[1] > 0).sort((a,b) => b[1]-a[1]);
     if (!races.length) return '<span style="color:var(--muted);font-size:10px">—</span>';
-    return `<div style="font-size:10.5px;line-height:1.5;color:#1f2937">${races.map(r=>`${r[0]}: <strong>${Math.round(r[1])}%</strong>`).join('<br>')}</div>`;
+    return `<div style="font-size:10.5px;line-height:1.5;color:#1f2937">${races.map(r=>`<span title="${r[2]}">${r[0]}: <strong>${Math.round(r[1])}%</strong></span>`).join('<br>')}</div>`;
   };
   wrap.innerHTML = `<div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px"><table class="compare-table">
     <thead><tr>
@@ -1950,7 +1972,7 @@ function renderListTable() {
       <th>Math Growth</th><th>Reading Growth</th>
       <th>Low-Income (EDS)</th><th>Title I</th>
       <th>Median Income (ZIP)</th>
-      <th>Demographics<br><span style="font-weight:400;text-transform:none;font-size:9.5px;color:#9ca3af">% by race</span></th>
+      <th>School Diversity<br><span style="font-weight:400;text-transform:none;font-size:9.5px;color:#9ca3af">NCES ELSI 2023-24 · informational only</span></th>
       <th>Phone</th><th>Address</th><th>Website</th><th></th>
     </tr></thead>
     <tbody>${items.map(s => `
