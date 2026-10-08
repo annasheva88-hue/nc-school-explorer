@@ -82,11 +82,6 @@
                border:1.5px solid #fff; border-radius:2px; transform:translateX(-50%); }
   .rk-val { text-align:right; font-weight:600; font-size:11px; }
   .rk-na { color:var(--muted); font-style:italic; }
-  /* Race bar */
-  .race-bar { display:flex; height:16px; border-radius:4px; overflow:hidden; margin:6px 0; }
-  .race-bar span { display:block; height:100%; }
-  .race-leg { display:flex; flex-wrap:wrap; gap:8px; font-size:10px; color:var(--muted); }
-
   /* ===== GreatSchools-style popup ===== */
   .popup.gs-style { font-size:12px; min-width:300px; max-width:340px; }
   .popup .popup-name { margin:0 0 4px; font-size:15px; color:#1f2937; }
@@ -121,7 +116,6 @@
   .profile-item { background:#f9fafb; border:1px solid var(--border); border-radius:6px; padding:6px; }
   .pi-label { font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px; }
   .pi-val { font-size:13px; font-weight:600; color:#1f2937; margin-top:2px; }
-  .fh-note { margin-top:6px; font-size:10px; color:var(--muted); font-style:italic; }
   /* Fair Housing disclaimer block for My List modal */
   .fair-housing-disclaimer {
     margin-top:14px; padding:12px 14px;
@@ -134,8 +128,6 @@
   .contacts-details summary:hover { color:#1d4ed8; text-decoration:underline; }
   .contacts-body { font-size:11px; color:var(--muted); margin-top:4px; }
   .popup-footer { margin-top:8px; font-size:10px; color:var(--muted); }
-  .race-leg .sw { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:3px;
-                   vertical-align:middle; }
   /* Assignment button — always visible */
   .assign-btn { display:flex; align-items:center; gap:8px; width:100%; padding:13px 14px;
                  background:#f97316; color:#fff; border:none; border-radius:8px; cursor:pointer;
@@ -1298,25 +1290,6 @@ function renderPopup(s) {
   const dist = state.home ? haversine(state.home.lat, state.home.lng, s.lat, s.lng) : null;
   const distHtml = dist != null ? `<div class="row"><span class="k">From home</span><span><strong>${dist.toFixed(1)} mi</strong></span></div>` : '';
 
-  // Monochromatic green palette — matches the main rating-card visual language.
-  // ColorBrewer Greens 7-class, wide lightness range, color-blind safe.
-  // Sorted by proportion (largest → darkest) so the bar reflects composition
-  // without implying any group hierarchy.
-  const GREEN_SHADES = ['#00441b','#006d2c','#238b45','#41ab5d','#74c476','#a1d99b','#c7e9c0'];
-  // Short single-letter labels (with full name in tooltip).
-  // A=Asian, W=White, B=Black, H=Hispanic, 2+=Multiracial, AI=AIAN, NH=NHPI
-  const racesRaw = [
-    ['W', s.pct_white, 'White'], ['B', s.pct_black, 'Black'],
-    ['H', s.pct_hisp, 'Hispanic'], ['A', s.pct_asian, 'Asian'],
-    ['2+', s.pct_two, 'Two or more races'], ['AI', s.pct_aian, 'American Indian / Alaska Native'],
-    ['NH', s.pct_nhpi, 'Native Hawaiian / Pacific Islander'],
-  ].filter(r => r[1] != null && r[1] > 0);
-  racesRaw.sort((a, b) => b[1] - a[1]);
-  const races = racesRaw.map((r, i) => [...r, GREEN_SHADES[Math.min(i, GREEN_SHADES.length - 1)]]);
-  const raceBar = races.length ? `
-    <div class="race-bar">${races.map(r => `<span style="width:${r[1]}%;background:${r[2]}" title="${r[0]} ${r[1]}%"></span>`).join('')}</div>
-    <div class="race-leg">${races.map(r => `<span><span class="sw" style="background:${r[2]}"></span>${r[0]} ${r[1]}%</span>`).join('')}</div>` : '<div style="color:var(--muted);font-size:11px">enrollment data not available</div>';
-
   const growthBadge = s.growth
     ? `<span style="font-size:11px;padding:1px 6px;border-radius:4px;background:${s.growth==='Exceeded'?'#1a9850':s.growth==='Met'?'#a6d96a':'#fdae61'};color:#fff">${s.growth==='Exceeded'?'Exceeded growth':s.growth==='Met'?'Met growth':'Not met growth'}</span>`
     : '';
@@ -1403,12 +1376,6 @@ function renderPopup(s) {
         ${s.url ? `<a href="${s.url}" target="_blank">school website ↗</a>` : ''}
       </div>
     </details>
-
-    <!-- Demographics section — moved to end, percentages only (no bar) -->
-    <div class="section-cap" style="margin-top:14px">School Diversity</div>
-    <div class="section-desc">Source: NCES ELSI 2023-24. Provided for informational purposes only.</div>
-    ${races.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px 14px;font-size:11.5px;color:#1f2937;margin-top:4px">${races.map(r=>`<span title="${r[2]||r[0]}"><strong>${r[0]}:</strong> ${r[1]}%</span>`).join('')}</div>` : '<div style="font-size:11px;color:var(--muted);font-style:italic">Enrollment data not available</div>'}
-    <div class="fh-note">Equal Housing Opportunity · Fair Housing Act</div>
 
     <div class="popup-footer">Coordinates: NCES EDGE 2023-24</div>
   </div>`;
@@ -1950,18 +1917,6 @@ function renderListTable() {
     return;
   }
   const items = [...state.myList].map(id => SCHOOLS.find(s => s.id === id)).filter(Boolean);
-  // School Diversity — compact single-letter labels (consistent with popup)
-  // W=White · B=Black · H=Hispanic · A=Asian · 2+=Two or more · AI=AIAN · NH=NHPI
-  const demoText = (s) => {
-    const races = [
-      ['W', s.pct_white, 'White'], ['B', s.pct_black, 'Black'], ['H', s.pct_hisp, 'Hispanic'],
-      ['A', s.pct_asian, 'Asian'], ['2+', s.pct_two, 'Two or more races'],
-      ['AI', s.pct_aian, 'American Indian / Alaska Native'],
-      ['NH', s.pct_nhpi, 'Native Hawaiian / Pacific Islander']
-    ].filter(r => r[1] != null && r[1] > 0).sort((a,b) => b[1]-a[1]);
-    if (!races.length) return '<span style="color:var(--muted);font-size:10px">—</span>';
-    return `<div style="font-size:10.5px;line-height:1.5;color:#1f2937">${races.map(r=>`<span title="${r[2]}">${r[0]}: <strong>${Math.round(r[1])}%</strong></span>`).join('<br>')}</div>`;
-  };
   wrap.innerHTML = `<div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px"><table class="compare-table">
     <thead><tr>
       <th>School</th><th>City · County</th><th>Type / Level</th>
@@ -1972,7 +1927,6 @@ function renderListTable() {
       <th>Math Growth</th><th>Reading Growth</th>
       <th>Low-Income (EDS)</th><th>Title I</th>
       <th>Median Income (ZIP)</th>
-      <th>School Diversity<br><span style="font-weight:400;text-transform:none;font-size:9.5px;color:#9ca3af">NCES ELSI 2023-24 · informational only</span></th>
       <th>Phone</th><th>Address</th><th>Website</th><th></th>
     </tr></thead>
     <tbody>${items.map(s => `
@@ -1995,7 +1949,6 @@ function renderListTable() {
         <td>${s.eds!=null ? s.eds+'%' : '—'}</td>
         <td>${s.title_i === 'Y' ? 'Yes' : 'No'}</td>
         <td>${s.hh_income ? '$'+s.hh_income.toLocaleString('en-US') : '—'}</td>
-        <td>${demoText(s)}</td>
         <td style="font-size:10.5px">${s.phone || '—'}</td>
         <td style="font-size:10.5px">${s.addr || '—'}</td>
         <td>${s.url ? `<a href="${s.url}" target="_blank" rel="noopener" style="color:#2563eb;font-size:11px">Visit ↗</a>` : '—'}</td>
