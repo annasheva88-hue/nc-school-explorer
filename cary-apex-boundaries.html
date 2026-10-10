@@ -125,7 +125,8 @@ SCHOOLS.forEach((s, i) => {
 let activeTown = null;
 function visibleSchools() {
   const q = document.getElementById('q').value.trim().toLowerCase();
-  return SCHOOLS.filter(s => (!activeTown || s.town===activeTown) && (!q || s.name.toLowerCase().includes(q)));
+  return SCHOOLS.filter(s => (!activeTown || s.town===activeTown) && (!q || s.name.toLowerCase().includes(q)))
+    .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || a.name.localeCompare(b.name));
 }
 function renderList() {
   const rows = visibleSchools();
