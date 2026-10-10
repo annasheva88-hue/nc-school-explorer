@@ -83,8 +83,8 @@ function badgeColor(r){ return (r==null || r>=6) ? '#fff' : '#14532d'; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 const STYLE = {
-  Cary: { color:'#1e3a8a', fillColor:'#2563eb', fillOpacity:0.22, weight:3 },
-  Apex: { color:'#9a3412', fillColor:'#ea580c', fillOpacity:0.22, weight:3, dashArray:'7 6' }
+  Cary: { color:'#1d4ed8', fillColor:'#93c5fd', fillOpacity:0.12, weight:2.5 },
+  Apex: { color:'#ea580c', fillColor:'#fdba74', fillOpacity:0.12, weight:2.5, dashArray:'7 6' }
 };
 const map = L.map('map', { attributionControl:true });
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
