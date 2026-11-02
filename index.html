@@ -363,6 +363,7 @@
                             transition:background 0.15s, box-shadow 0.15s; }
   .home-card .locator-btn:hover { background:#1d4ed8; box-shadow:0 4px 10px rgba(37,99,235,0.4); }
   .home-card .locator-btn::after { content:"→"; font-size:14px; font-weight:600; }
+  .home-card .zone-anna { display:inline-block; margin-top:8px; font-size:12px; font-weight:700; color:#1d4ed8; }
   .nearest-list { margin-top:8px; display:flex; flex-direction:column; gap:4px; }
   .nearest-row { display:flex; align-items:center; gap:8px; padding:6px; background:#fff;
                   border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:11px; }
@@ -1670,6 +1671,7 @@ function renderHomeCard() {
     <div style="margin-top:10px;font-size:12px;font-weight:600">Base assigned public school</div>
     <div style="font-size:11px;color:var(--muted);margin:2px 0 6px">Attendance zones (WCPSS, DPS, etc.) do not follow simple distance — only the official locator returns the authoritative result:</div>
     <div>${locatorHtml}</div>
+    <div><a class="zone-anna" href="https://annarukhlina.com/contacts/" target="_blank" rel="noopener">Review this area and homes with Anna</a></div>
     <div class="disclaimer" style="margin-top:8px">For Charter, Magnet, and Early College options near this address — see the "Charter &amp; Magnet schools" panel at the top of the sidebar.</div>
   </div>`;
   document.getElementById('clear-home').onclick = clearHome;
